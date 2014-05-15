@@ -113,6 +113,8 @@ void loopLight(void *l,void *b) {
         light->state=1; // button pressed
         break;
       case 1:
+        // wait for a while for a release of the button,
+        // that would toggle on/off
         // if time-out, then goto state 2
         if (button->timePressed>onOffButtonTime) {
           // end of state 1
@@ -126,29 +128,35 @@ void loopLight(void *l,void *b) {
           // 0 is illegal value
           light->brightnessDirection=1;
         }
-        if ((light->brightness>=255) && (light->brightnessDirection>0)) {
-          // oops, would cause overflow, so change direction
-          light->brightnessDirection=-1;
-        }
-        if ((light->brightness<=5) && (light->brightnessDirection<0)) {
-          // oops, would cause overflow, so change direction
-          light->brightnessDirection=1;
-        }
         // every timePerStep1 loops, adjust the brightness
         int timePerStep=timePerStep1; // default during first time period
         if (button->timePressed>stepsSpeed1) {
           timePerStep=timePerStep2;
         }
         // Method 2: if brightness is high, then accelerate faster
-        int stepsPerCycle=(light->brightness / 20)+1;
-        timePerStep=20 - (light->brightness / 100);
+        int stepsPerCycle=(light->brightness / 80)+1;
+        timePerStep=2 - (light->brightness / 50);
         if (timePerStep<1) {
           timePerStep=1;
         }
-        timePerStep=1;
+        //timePerStep=1;
+        // temporary int as brightness to detect overflow in an easier way
+        int b=light->brightness;
         if ((button->timePressed % timePerStep) == 0 ) {
-          light->brightness+=light->brightnessDirection;
+          b+=(stepsPerCycle*light->brightnessDirection);
         }
+        if (b>255) {
+          // oops, overflow, so change direction
+          b=255; // max value
+          light->brightnessDirection=-1;
+        }
+        if (b<1) {
+          // oops, overflow, so change direction
+          b=1;
+          light->brightnessDirection=1;
+        }
+        // Store the temporary value in the real light struct
+        light->brightness=b;
         break;
     }
   } else {
