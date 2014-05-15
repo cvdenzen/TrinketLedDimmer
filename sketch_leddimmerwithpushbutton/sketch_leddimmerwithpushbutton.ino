@@ -135,7 +135,7 @@ void loopLight(void *l,void *b) {
         }
         // Method 2: if brightness is high, then accelerate faster
         int stepsPerCycle=(light->brightness / 80)+1;
-        timePerStep=2 - (light->brightness / 50);
+        timePerStep=6 - (light->brightness / 20);
         if (timePerStep<1) {
           timePerStep=1;
         }
