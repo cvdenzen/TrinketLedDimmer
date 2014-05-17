@@ -2,33 +2,44 @@
 #include "leddimmerwithpushbutton.h"
 /*
 
-led dimmer with push button control, using aTTiny85
+Dual led dimmer with push button control, using aTTiny85.
+If the button is pushed for a short time (<1 second), the light wil toggle on/off.
+If the button is held for a longer time (>1 second), the dimming function comes in action
+and will decrease/increase the intensity of the led (via Pulse Width Modulation).
 
 Circuit:
 
-GPIO#4: output PWM light 1,
-B4, OC1B output PWM. This pin is used for USB programming.
+GPIO#4:
+Dimmer: output PWM light 1 NO, leds will flicker on startup
+Boot: B4, OC1B output PWM. This pin is used for USB programming.
 Disadavantage of double use of this output pwm (OCR0B): leds will flicker
 during programming.
 
-GPIO#3: not used externally,
-PB3, OC1B(inv), output PWM?. This pin is used for USB programming.
+GPIO#3 PB3, OC1B(inv), output PWM?
+Dimmer: not used
+Boot: This pin is used for USB programming.
 
-GPIO#2: input button for light 1,
-PB2, input switch 1.
+GPIO#2 PB2
+Dimmer: input button for light 1
 
-GPIO#1: output PWM light 2,
-PB1 OC1A output PWM (Pulse Width Modulation),
+GPIO#1 PB1 OC1A output PWM (Pulse Width Modulation),
+Dimmer: output PWM light 2 NO, leds will flicker on startup
 connected to onboard led, (like pin 13 on a regular Arduino)
 
-GPIO#0: input button for light 2,
-PB0 OC1A(inv) output PWM.
+GPIO#0 PB0 OC1A(inv) output PWM.
+Dimmer: input button for light 2,
 
-Input buttons are connected to GND and with a resistor (10k) and a capacitor (10nF)
-to the input pins.
+Input buttons are connected to GND and with a resistor (1k) to the input pins.
 
 Output PWM are connected to N-channel HEXFET, so high output will light the leds.
 
+Dimmer pin layout change:
+Date 20140517
+Function   Pin           Comments
+Button1    PB2
+Button2    PB4           With 1k resistor in series to avoid short circuit at boot time
+Light1     PB0=OC1A(inv) Inverted, software must handle this
+Light2     PB3=OC1B(inv) Inverted, software must handle this
 */
 
 #define button1Pin 2
