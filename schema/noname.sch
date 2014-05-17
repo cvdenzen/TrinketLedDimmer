@@ -56,28 +56,6 @@ F 3 "" H 5250 1750 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L IRF7309IPBF Q?
-U 1 1 53752E93
-P 7900 3250
-F 0 "Q?" H 7900 3102 40  0000 R CNN
-F 1 "IRLML0030TRPbF" H 7900 3399 40  0000 R CNN
-F 2 "SO8" H 7721 3351 29  0000 C CNN
-F 3 "~" H 7900 3250 60  0000 C CNN
-	1    7900 3250
-	1    0    0    -1  
-$EndComp
-$Comp
-L IRF7309IPBF Q?
-U 1 1 53752F5C
-P 7900 4250
-F 0 "Q?" H 7900 4102 40  0000 R CNN
-F 1 "IRLML0030TRPbF" H 7900 4399 40  0000 R CNN
-F 2 "SO8" H 7721 4351 29  0000 C CNN
-F 3 "~" H 7900 4250 60  0000 C CNN
-	1    7900 4250
-	1    0    0    -1  
-$EndComp
-$Comp
 L R R4
 U 1 1 53753193
 P 7500 4650
@@ -196,4 +174,82 @@ Connection ~ 6700 5000
 Connection ~ 2200 2100
 Text Notes 8300 3250 0    60   ~ 0
 Light1
+$Comp
+L IRLML0030TRPBF Q?
+U 1 1 53774EA5
+P 7900 3150
+F 0 "Q?" H 7900 3002 40  0000 R CNN
+F 1 "IRLML0030TRPBF" H 7900 3299 40  0000 R CNN
+F 2 "SOT-23" H 7721 3251 29  0000 C CNN
+F 3 "~" H 7900 3150 60  0000 C CNN
+	1    7900 3150
+	1    0    0    -1  
+$EndComp
+$Comp
+L IRLML0030TRPBF Q?
+U 1 1 53774EB4
+P 7900 4250
+F 0 "Q?" H 7900 4102 40  0000 R CNN
+F 1 "IRLML0030TRPBF" H 7900 4399 40  0000 R CNN
+F 2 "SOT-23" H 7721 4351 29  0000 C CNN
+F 3 "~" H 7900 4250 60  0000 C CNN
+	1    7900 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8000 3450 8000 3350
+Wire Notes Line
+	7100 2200 7400 2200
+Wire Notes Line
+	7400 2200 7400 2650
+Wire Notes Line
+	7400 2650 7100 2650
+Wire Notes Line
+	7100 2650 7100 2200
+Wire Notes Line
+	7100 2300 7050 2300
+Wire Notes Line
+	7050 2300 7050 2350
+Wire Notes Line
+	7050 2350 7100 2350
+Wire Notes Line
+	7100 2550 7050 2550
+Wire Notes Line
+	7050 2550 7050 2500
+Wire Notes Line
+	7050 2500 7100 2500
+Wire Notes Line
+	7400 2400 7450 2400
+Wire Notes Line
+	7450 2400 7450 2450
+Wire Notes Line
+	7450 2450 7400 2450
+Text Notes 6950 2300 0    60   ~ 0
+1
+Text Notes 6950 2550 0    60   ~ 0
+2
+Text Notes 7500 2400 0    60   ~ 0
+3
+Text Notes 7000 2100 0    60   ~ 0
+SOT-23
+Connection ~ 6800 5000
+Connection ~ 6700 4400
+Connection ~ 7500 4400
+Connection ~ 7500 4900
+Connection ~ 6700 4900
+Connection ~ 7700 4300
+Connection ~ 8000 4450
+Connection ~ 6800 3450
+Connection ~ 7700 3200
+Connection ~ 8000 3350
+Connection ~ 6600 2000
+Connection ~ 3900 1900
+Connection ~ 3900 1800
+Connection ~ 3900 1700
+Connection ~ 3900 1500
+Connection ~ 3300 1700
+Connection ~ 3300 2100
+Connection ~ 2800 2100
+Connection ~ 2800 1700
+Connection ~ 2200 1700
 $EndSCHEMATC
