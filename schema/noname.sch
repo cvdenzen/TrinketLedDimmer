@@ -36,7 +36,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "noname.sch"
-Date "17 may 2014"
+Date "22 may 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -58,12 +58,12 @@ $EndComp
 $Comp
 L R R4
 U 1 1 53753193
-P 7500 4650
-F 0 "R4" V 7580 4650 40  0000 C CNN
-F 1 "100k" V 7507 4651 40  0000 C CNN
-F 2 "~" V 7430 4650 30  0000 C CNN
-F 3 "~" H 7500 4650 30  0000 C CNN
-	1    7500 4650
+P 7000 4650
+F 0 "R4" V 7080 4650 40  0000 C CNN
+F 1 "100k" V 7007 4651 40  0000 C CNN
+F 2 "~" V 6930 4650 30  0000 C CNN
+F 3 "~" H 7000 4650 30  0000 C CNN
+	1    7000 4650
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -134,25 +134,11 @@ Wire Wire Line
 Wire Wire Line
 	3300 1900 3900 1900
 Wire Wire Line
-	7700 3200 7700 3300
-Wire Wire Line
 	3900 1500 3700 1500
-Wire Wire Line
-	3700 1500 3700 3300
-Wire Wire Line
-	3700 3300 7700 3300
 Wire Wire Line
 	3900 1800 3750 1800
 Wire Wire Line
 	3750 1800 3750 4300
-Wire Wire Line
-	3750 4300 7700 4300
-Wire Wire Line
-	6700 4400 6700 3300
-Connection ~ 6700 3300
-Wire Wire Line
-	7500 4400 7500 4300
-Connection ~ 7500 4300
 Wire Wire Line
 	8000 3450 6800 3450
 Wire Wire Line
@@ -164,10 +150,7 @@ Wire Wire Line
 Wire Wire Line
 	2200 5000 8000 5000
 Wire Wire Line
-	7500 5000 7500 4900
-Wire Wire Line
 	8000 5000 8000 4450
-Connection ~ 7500 5000
 Wire Wire Line
 	2200 1700 2200 5000
 Connection ~ 6700 5000
@@ -234,8 +217,6 @@ Text Notes 7000 2100 0    60   ~ 0
 SOT-23
 Connection ~ 6800 5000
 Connection ~ 6700 4400
-Connection ~ 7500 4400
-Connection ~ 7500 4900
 Connection ~ 6700 4900
 Connection ~ 7700 4300
 Connection ~ 8000 4450
@@ -252,4 +233,46 @@ Connection ~ 3300 2100
 Connection ~ 2800 2100
 Connection ~ 2800 1700
 Connection ~ 2200 1700
+$Comp
+L R R5
+U 1 1 537E6BFB
+P 7450 3200
+F 0 "R5" V 7530 3200 40  0000 C CNN
+F 1 "22k" V 7457 3201 40  0000 C CNN
+F 2 "~" V 7380 3200 30  0000 C CNN
+F 3 "~" H 7450 3200 30  0000 C CNN
+	1    7450 3200
+	0    -1   -1   0   
+$EndComp
+$Comp
+L R R6
+U 1 1 537E6C0A
+P 7450 4300
+F 0 "R6" V 7530 4300 40  0000 C CNN
+F 1 "22k" V 7457 4301 40  0000 C CNN
+F 2 "~" V 7380 4300 30  0000 C CNN
+F 3 "~" H 7450 4300 30  0000 C CNN
+	1    7450 4300
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	7200 3200 3700 3200
+Connection ~ 3700 3200
+Wire Wire Line
+	3700 3200 3700 1500
+Wire Wire Line
+	6700 4400 6700 3200
+Connection ~ 6700 3200
+Wire Wire Line
+	7000 4900 7000 5000
+Connection ~ 7000 5000
+Wire Wire Line
+	7000 4400 7000 4300
+Connection ~ 7000 4300
+Wire Wire Line
+	3750 4300 7200 4300
+Connection ~ 7200 4300
+Connection ~ 7000 4400
+Connection ~ 7000 4900
+Connection ~ 7200 3200
 $EndSCHEMATC

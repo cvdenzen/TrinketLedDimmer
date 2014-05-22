@@ -1,5 +1,8 @@
 #include <EEPROM.h>
 #include "leddimmerwithpushbutton.h"
+
+#include "wiring_private.h"
+#include "pins_arduino.h"
 /*
 
 Dual led dimmer with push button control, using aTTiny85.
@@ -43,9 +46,9 @@ Light2     PB3=OC1B(inv) Inverted, software must handle this
 */
 
 #define button1Pin 2
-#define button2Pin 0
-#define led1Pin 4
-#define led2Pin 1 /* also onboard led */
+#define button2Pin 4
+#define led1Pin 0
+#define led2Pin 3
 
 // If the button is pressed shorter than onOffButtonTime, the
 // on/off status of the led is toggled. Unit is 10ms.
@@ -59,10 +62,82 @@ Light2     PB3=OC1B(inv) Inverted, software must handle this
 
 
 
-Light light1={4,0,0,0,0,0,0L,0};
-Light light2={1,10,0,0,0,0,0L,0};
+Light light1={led1Pin,0,0,0,0,0,0L,0};
+Light light2={led2Pin,10,0,0,0,0,0L,0};
 Button button1={button1Pin,HIGH,HIGH,0,0};
 Button button2={button2Pin,HIGH,HIGH,0,0};
+
+// analogWrite to control the inversed pins.
+//
+void myAnalogWrite(void *l)
+{
+  Light *light;
+  light=(Light *)l;
+	// We need to make sure the PWM output is enabled for those pins
+	// that support it, as we turn it off when digitally reading or
+	// writing with them.  Also, make sure the pin is in output mode
+	// for consistenty with Wiring, which doesn't require a pinMode
+	// call for the analog output pins.
+        int val;
+        uint8_t pin=light->pin;
+        // If we use the inverse pins, the brightness must be inverted
+        if ((pin==0) || (pin==3)) {
+          val=255 - light->brightness;
+        } else {
+          val=light->brightness;
+        }
+        // But if light is off, override the value
+        if (light->lightOn==0) {
+          val=0;
+        }
+        //val=200; // DEBUG
+        //digitalWrite(1,254);
+	//pinMode(pin, OUTPUT);
+/*
+	if (val == 0)
+	{
+		digitalWrite(pin, LOW);
+	}
+	else if (val == 255)
+	{
+		digitalWrite(pin, HIGH);
+	}
+	else
+*/
+	{
+          // Only support ATTiny pins.
+          // Pin 0=PB0=OC1A(inv)
+          // Pin 1=PB1=OC1A  (with on-board led)
+          // Pin 3=PB3=OC1B(inv)
+          // Pin 4=PB4=OC1B
+          // connect pwm to pin on timer 1, channel B
+          switch (pin) {
+            case 0: // PB0=OC1A(inv)
+              cbi(TCCR1,COM1A1);
+              sbi(TCCR1,COM1A0); // enable inverted output
+              //analogWrite(1,val); //debug
+              //analogWrite(0,val); //debug
+              //digitalWrite(0,200);
+              OCR1A=val;
+              //pinMode(1,OUTPUT); // DEBUG
+              break;
+            case 1: // on-board led
+              sbi(TCCR1,COM1A1);
+              OCR1A=val;
+              break;
+            case 3:
+              sbi(TCCR1,COM1B0); // inverted output
+              OCR1B = val;
+              break;
+            case 4:
+              sbi(TCCR1,COM1B1); // clear on compare
+              OCR1B = val;
+              break;
+          } // end switch
+	}
+}
+
+
 
 // Stupid Arduino IDE makes me use a void pointer as intermediate.
 // See: http://forum.arduino.cc/index.php/topic,41848.0.html
@@ -90,14 +165,13 @@ void setupLight(void *l) {
     light->brightness=EEPROM.read(index++);
     light->brightnessDirection=EEPROM.read(index++);
   }
+  pinMode(light->pin,OUTPUT);
+  sbi(TCCR1,PWM1A); // ENABLE Pulse Width Modulation
 }
 
 void setup() {
   setupButton(&button1);
   setupButton(&button2);
-  // set output pins to output
-  pinMode(led1Pin,OUTPUT);
-  pinMode(led2Pin,OUTPUT);
 
   setupLight(&light1);
   setupLight(&light2);
@@ -213,6 +287,8 @@ void loopLight(void *l,void *b) {
           index++;
           // Validate the values
           EEPROM.write(base,55);
+          // Turn off the on-board led
+          pinMode(1,INPUT);
         }
         break;
       case 1:
@@ -224,10 +300,11 @@ void loopLight(void *l,void *b) {
         }
         break;
     }
+    // Button not pressed, goto state 0
     light->state=0;
   }
   // set th pwm value accordingly
-  analogWrite(light->pin,(light->lightOn>0)?light->brightness:0);
+  myAnalogWrite(light);
   //analogWrite(light->pin,light->brightness);
   
   if (light->previousState!=light->state) {
