@@ -18,7 +18,7 @@ typedef struct {
 
 // A button with debounce data
 typedef struct {
-  int buttonPin;
+  int pin;
   byte outValue; // the value that is exposed to the client
   byte lastValue; // the value during the previous loop
   byte stableCycles; // the number op loops the lastValue was stable
