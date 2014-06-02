@@ -50,6 +50,12 @@ Light2     PB3=OC1B(inv) Inverted, software must handle this
 #define led1Pin 0
 #define led2Pin 3
 
+// Looptime in ms
+#define LOOPTIME 10
+// Fade-out time (when turning light off, how long will it fade out, in ms)
+// A nice value is 3000 ms (3 seconds) if you want a fade out.
+// I don't like the flickering fade-out.
+#define FADEOUTTIME 0
 // If the button is pressed shorter than onOffButtonTime, the
 // on/off status of the led is toggled. Unit is 10ms.
 #define onOffButtonTime 100 /* in units of 10ms */
@@ -61,6 +67,9 @@ Light light1={led1Pin,0,0,0,0,0,0L,0};
 Light light2={led2Pin,10,0,0,0,0,0L,0};
 Button button1={button1Pin,HIGH,HIGH,0,0};
 Button button2={button2Pin,HIGH,HIGH,0,0};
+
+// The constant for calculating the fade-out
+const float k=6.2146081 / ((float)FADEOUTTIME/(float)LOOPTIME);
 
 // analogWrite to control the inversed pins.
 //
@@ -77,8 +86,16 @@ void myAnalogWrite(void *l)
         uint8_t pin=light->pin;
         val=light->brightness;
         // But if light is off, override the value
-        if (light->lightOn==0) {
-          val=0;
+        if ((light->state==0) && (light->lightOn==0)) {
+          if ((light->cyclesInThisState * LOOPTIME) < FADEOUTTIME) {
+            // fade out. Formula: val= e ^^ (-k*t)
+            // For t=FADEOUTTIME, val should be 1/512 (half bit), so k=- ln(0.002) / FADEOUTTIME
+            
+            val=(byte) ( ((float)light->brightness)* pow(2.7182818,-k * (float)light->cyclesInThisState));
+          } else {
+            // fade out time has expired, turn light off completely
+            val=0;
+          }
         }
         // If we use the inverse pins, the brightness must be inverted
         if ((pin==0) || (pin==3)) {
@@ -147,6 +164,9 @@ void setupLight(void *l) {
     light->brightness=EEPROM.read(index++);
     light->brightnessDirection=EEPROM.read(index++);
   }
+  light->state=0;
+  // simulate as if we are already a long time in this state
+  light->cyclesInThisState=FADEOUTTIME*LOOPTIME+100;
 
           // Only support ATTiny pins.
           // Pin 0=PB0=OC1A(inv)
@@ -233,10 +253,12 @@ void loopLight(void *l,void *b) {
         }
         // Method 2: if brightness is high, then accelerate faster
         int stepsPerCycle=(light->brightness / 80)+1;
-        int timePerStep=6 - (light->brightness / 20);
+        int timePerStep=4 - (light->brightness / 20);
         if (timePerStep<1) {
           timePerStep=1;
         }
+        // Method 3 todo
+        //float dimSpeed;
         //timePerStep=1;
         // temporary int as brightness to detect overflow in an easier way
         int b=light->brightness;
@@ -248,9 +270,9 @@ void loopLight(void *l,void *b) {
           b=255; // max value
           light->brightnessDirection=-1;
         }
-        if (b<1) {
-          // oops, overflow, so change direction
-          b=1;
+        if (b<12) {
+          // oops, underflow, so change direction
+          b=12;
           light->brightnessDirection=1;
         }
         // Store the temporary value in the real light struct
@@ -303,7 +325,7 @@ void loopLight(void *l,void *b) {
           // Turn off the on-board led
           //pinMode(1,INPUT);
           cbi(DDRB,1);
-        }
+        } // if x ms in idle state
         break;
       case 1:
         // button released in first time of button pressed, toggle on/off
@@ -321,21 +343,25 @@ void loopLight(void *l,void *b) {
   myAnalogWrite(light);
   
   
-  // debug
-  if (1==0) {
-    //pinMode(1,INPUT);
-    cbi(TCCR1,PWM1A); // pwm off
-    if (button->outValue==LOW) {
-      sbi(PORTB,1);
-    } else {
-      cbi(PORTB,1);
+  int testMode=0; // debug
+  switch (testMode) {
+    case 1:
+      //pinMode(1,INPUT);
+      cbi(TCCR1,PWM1A); // pwm off
+      if (button->outValue==LOW) {
+        sbi(PORTB,1);
+      } else {
+        cbi(PORTB,1);
       //light->brightness=0;
       //digitalWrite(light->pin,LOW);
     }
     //digitalWrite(1,LOW);
     //analogWrite(light->pin,light->brightness);
-
-  } // einde debug
+    break;
+    case 2:
+      // digital read
+      break;
+  } // einde debug switch
   
   if (light->previousState!=light->state) {
     // State has changed
@@ -379,14 +405,15 @@ void loop() {
   loopButton(&button2);
   //light2.brightness=150;
   
-  boolean debug=true;
-  if (debug) {
-    
+  int analogValue=0;
+  int value1;
+  int debugMode=2;
+  switch (debugMode) {
+  case 1:
     // analog read pb4, vcc as ref, left justified, pb4 is single ended input
     ADMUX=0b00100010;
     // Start: ADEN=1, START CONVERSION, no auto trigger, no interr.flag, no interr.enable, prescaler 100=32
     ADCSRA=0b11000100;
-    int analogValue=0;
     // wait for ad conversion
     while (ADCSRA & (1<<ADSC)) ;
     analogValue=ADCH; // left justified 8 bit value
@@ -410,16 +437,33 @@ void loop() {
    */ 
     if (button2.lastValue==LOW) {
       //sbi(PORTB,3);
-      OCR1B=200;
+      OCR1B=0;
       //sbi(PINB,3); //toggle value
     } else {
-      OCR1B=50;
-      cbi(PORTB,3);
+      // button HIGH, not pressed
+      OCR1B=100; // lower values give more light
+      //cbi(PORTB,3);
     } // if button2->outValue==LOW
-  } else {
+    break;
+  case 2:
+    // digital read pb4
+    ADCSRA=0; // disable A/D converter
+    DIDR0=0; // enable digital input
+    cbi(DDRB,4); //input pin
+    sbi(PORTB,4); // pull-up resistor on/off
+    value1=PINB&(1<<4);
+     if (value1!=0) {
+      // high, button not pressed
+      OCR1B=18; // lower values more light
+    } else {
+      // low, button is pressed
+      OCR1B=256-12;
+    }
+    break;
+  default:
     loopLight(&light2,&button2);
-  }
+  } // end of switch(debugMode
   
-  delay(10);
+  delay(LOOPTIME);
 }
 
