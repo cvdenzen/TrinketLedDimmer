@@ -5,7 +5,7 @@
 #include "pins_arduino.h"
 /*
 
-Dual led dimmer with push button control, using ATTiny85.
+Dual led dimmer with push button control, using Adafruit Trinket (ATTiny85).
 If the button is pushed for a short time (<1 second), the light wil toggle on/off.
 If the button is held for a longer time (>1 second), the dimming function comes in action
 and will decrease/increase the intensity of the led (via Pulse Width Modulation).
@@ -19,30 +19,43 @@ Disadavantage of double use of this output pwm (OCR0B): leds will flicker
 during programming.
 
 GPIO#3 PB3, OC1B(inv), output PWM?
-Dimmer: not used
+Dimmer: Light 2
 Boot: This pin is used for USB programming.
 
 GPIO#2 PB2
 Dimmer: input button for light 1
 
 GPIO#1 PB1 OC1A output PWM (Pulse Width Modulation),
-Dimmer: output PWM light 2 NO, leds will flicker on startup
+Dimmer: use onboard led to signal key press and eeprom store (after some seconds)
 connected to onboard led, (like pin 13 on a regular Arduino)
 
 GPIO#0 PB0 OC1A(inv) output PWM.
-Dimmer: input button for light 2,
+Dimmer: light 1
 
 Input buttons are connected to GND and with a resistor (1k) to the input pins.
 
 Output PWM are connected to N-channel HEXFET, so high output will light the leds.
 
-Dimmer pin layout change:
-Date 20140517
+Dimmer pin layout summary as of Date 20140517
 Function   Pin           Comments
 Button1    PB2
 Button2    PB4           With 1k resistor in series to avoid short circuit at boot time
 Light1     PB0=OC1A(inv) Inverted, software must handle this
 Light2     PB3=OC1B(inv) Inverted, software must handle this
+
+
+Trinket board modifications:
+Remove D1 and D3 zener diodes and R3 resistor. otherwise pins will not work as digital input.
+
+Programming:
+Use Adafruit IDE (based on Arduino IDE version 1.0.5). Don't know whether that is necessary, but it has all
+definitions for the ATTiny85 already installed.
+I used an Arduino Leonardo as ISP to program the Adafruit Trinket. After the modification of the Trinket
+the program load via the Trinket USB port doesn't work anymore, so you have to fall-back to ISP programming.
+It is not desirable to leave the Trinket USB boot loader in place anyway, because the Trinket will try to USB-boot
+at startup, which will make your led light flicker.
+There are many sources on how to do this, mainly using Arduino Uno. Using an Arduino Leonardo is a little bit more
+difficult, but also quite well described on internet.
 */
 
 #define button1Pin 2
@@ -118,12 +131,7 @@ void myAnalogWrite(void *l)
               break;
             case 3:
               //sbi(TCCR1,COM1B0); // inverted output
-              OCR1B = 20;//val;
-              if (val<128) {
-                //digitalWrite(3,LOW);
-              } else {
-                //digitalWrite(3,HIGH);
-              }
+              OCR1B = val;
               break;
             case 4:
               //sbi(TCCR1,COM1B1); // clear on compare
@@ -226,9 +234,7 @@ void loopLight(void *l,void *b) {
     // button is pressed, so some action is going on
     //pinMode(1,OUTPUT); // turn on monitor led
     //sbi(DDRB,1);
-    if (button->pin==2) {
-      sbi(DDRB,1); // turn on on-board led
-    }
+    sbi(DDRB,1); // turn on on-board led on Trinket board
     switch (light->state) {
       case 0:
         // do nothing
@@ -407,7 +413,7 @@ void loop() {
   
   int analogValue=0;
   int value1;
-  int debugMode=2;
+  int debugMode=0;
   switch (debugMode) {
   case 1:
     // analog read pb4, vcc as ref, left justified, pb4 is single ended input
