@@ -191,12 +191,12 @@ void setupLight(void *l) {
               //analogWrite(0,val); //debug
               //digitalWrite(0,200);
               OCR1A=255; // Turn off light at startup to avoid flickering
-              pinMode(1,OUTPUT); // DEBUG
+              //pinMode(1,OUTPUT); // DEBUG
               break;
             case 3:
               cbi(GTCCR,COM1B1);
               sbi(GTCCR,COM1B0); // inverted output
-              OCR1B = 127; // Turn off light at startup to avoid flickering
+              OCR1B = 255; // Turn off light at startup to avoid flickering
               break;
             case 4:
               sbi(TCCR1,COM1B1); // clear on compare
@@ -204,7 +204,9 @@ void setupLight(void *l) {
               break;
           } // end switch
   //pinMode(light->pin,OUTPUT);
-  sbi(DDRB,light->pin);
+  // delay before making it outpout
+  delay(1); // 100=100*10ms=0,1 second
+  sbi(DDRB,light->pin); // set bit, output pin.
   sbi(TCCR1,PWM1A); // ENABLE Pulse Width Modulation
   sbi(GTCCR,PWM1B);
 } // setupLight
